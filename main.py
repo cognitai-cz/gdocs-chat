@@ -2,13 +2,11 @@ from typing import TypedDict, Annotated, Sequence
 
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
-from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import HumanMessage, AIMessage, BaseMessage, trim_messages, \
-    SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage, trim_messages
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.constants import START
-from langgraph.graph import StateGraph, MessagesState, add_messages
+from langgraph.graph import StateGraph, add_messages
 from langgraph.graph.state import CompiledStateGraph
 
 load_dotenv()
@@ -34,10 +32,10 @@ trimmer = trim_messages(
     start_on="human",
 )
 
+
 class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     language: str
-
 
 
 def call_model(state: State):
@@ -70,10 +68,10 @@ def ask(question: str, app, language: str):
     config = {"configurable": {"thread_id": "abc123"}}
 
     input_msg = [HumanMessage(question)]
-    for chunk, metadata in app.stream(
-            {"messages": input_msg, "language": language},
-            config,
-            stream_mode="messages",
+    for chunk, _ in app.stream(
+        {"messages": input_msg, "language": language},
+        config,
+        stream_mode="messages",
     ):
         if isinstance(chunk, AIMessage):  # Filter to just model responses
             print(chunk.content, end="|")
