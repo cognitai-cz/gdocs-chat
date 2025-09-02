@@ -1,0 +1,8 @@
+Názov cviku,Počet sérií,Počet opakovaní,Intenzita,,Poznámka
+A1: benchpress,"1
+1
+1","2
+5
+5","100 rpe 7,5
+90 rpe 7
+90 rpe 7,5",,
