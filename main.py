@@ -6,11 +6,11 @@ from langchain_core.prompts import PromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, StateGraph
 
+from src.embeddings.pdf_embedding import PDFEmbedding
+from src.logging import setup_logging
 from src.promts import ASK_PROMPT, GDOCS_PARSE_PROMPT
 from src.schemas import ExercisesList, State
 
-
-load_dotenv()
 
 model = init_chat_model("gpt-4o-mini", model_provider="openai")
 
@@ -59,15 +59,17 @@ def parse_file() -> str:
 
 
 def main():
-    # TODO: Add memmory, try to parse more exercises
-    config = {"configurable": {"thread_id": "abc123"}}
-    graph = init_graph()
-
-    input_message = HumanMessage("What is my best benchrpess (absolute load)?")
-    raw_string = parse_file()
-
-    res = graph.invoke({"raw_string": raw_string, "question": input_message}, config)
-    res["answer"].pretty_print()
+    setup_logging()
+    # config = {"configurable": {"thread_id": "abc123"}}
+    # graph = init_graph()
+    #
+    # input_message = HumanMessage("What is my best benchrpess (absolute load)?")
+    # raw_string = parse_file()
+    #
+    # res = graph.invoke({"raw_string": raw_string, "question": input_message}, config)
+    # res["answer"].pretty_print()
+    pdf_embed = PDFEmbedding()
+    pdf_embed.load_to_db()
 
 
 main()
