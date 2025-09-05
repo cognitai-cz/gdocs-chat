@@ -3,7 +3,7 @@ from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import ToolNode, tools_condition
 
 from src.rag.tools import rules_context_tool
 from src.schemas.graph import State
@@ -12,17 +12,25 @@ from src.schemas.graph import State
 class Rag:
     @staticmethod
     def ask(state: State):
+        """
+        Initial entrypoint for the chatbot, bind model with tools
+        if the question requires the rules context from pdf
+        """
         llm_with_tools = state.llm.bind_tools([rules_context_tool])
         return {"messages": [llm_with_tools.invoke(state.messages)]}
 
     @staticmethod
     def generate(state: State):
+        """
+        Generate a final answer using context from tools
+        """
         recent_tool_messages = []
         for message in reversed(state.messages):
             if message.type == "tool":
                 recent_tool_messages.append(message)
             else:
                 break
+        # Get most recent tools messages
         tool_messages = recent_tool_messages[::-1]
 
         docs_content = "\n\n".join(doc.content for doc in tool_messages)
@@ -36,6 +44,7 @@ class Rag:
             f"{docs_content}"
         )
 
+        # Filter out tool rules, provide memory
         conversation_messages = [
             message
             for message in state.messages
@@ -58,7 +67,14 @@ class Rag:
         graph.add_node(tools)
 
         graph.set_entry_point("ask")
-        graph.add_edge("ask", "tools")
+        graph.add_conditional_edges(
+            # Dict decides where to go next in the graph, so
+            # if no tool is used (END is returned) go to END of the graph
+            # if a tool is used (tools is returned) go to tools
+            "ask",
+            tools_condition,
+            {END: END, "tools": "tools"},
+        )
         graph.add_edge("tools", "generate")
         graph.add_edge("generate", END)
 
