@@ -19,4 +19,6 @@ dependencies = [
     "pydantic-settings>=2.10.1",
     "pypdf>=6.0.0",
     "python-dotenv>=1.1.1",
+    "matplotlib>=3.8.0",
+    "pillow>=10.0.0",
 ]
